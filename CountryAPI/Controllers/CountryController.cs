@@ -26,7 +26,7 @@ namespace CountryAPI.Controllers
         public async Task<IActionResult> GetByCodes([FromQuery] List<string> ids)
         {
             var countries = await _service.GetCountriesByCodesAsync(ids);
-            return countries.Any() ? Ok(countries) : NotFound();
+            return countries.Any() ? Ok(countries) : NotFound("Error fetching data.");
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace CountryAPI.Controllers
         public async Task<IActionResult> GetByCode(string id)
         {
             var country = await _service.GetCountriesByCodesAsync(new List<string> { id });
-            return country.Any() ? Ok(country) : NotFound();
+            return country.Any() ? Ok(country) : NotFound("Error fetching data.");
         }
     }
 }

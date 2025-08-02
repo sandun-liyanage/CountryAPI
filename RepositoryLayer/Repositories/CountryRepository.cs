@@ -1,5 +1,6 @@
 ﻿using Core.AppSettings;
 using Core.DTO;
+using Microsoft.Extensions.Logging;
 using System.Data.SqlClient;
 
 namespace RepositoryLayer.Repositories
@@ -7,10 +8,12 @@ namespace RepositoryLayer.Repositories
     public class CountryRepository : ICountryRepository
     {
         private readonly string _connectionString;
+        private readonly ILogger<CountryRepository> _logger;
 
-        public CountryRepository(AppSettings settings)
+        public CountryRepository(AppSettings settings, ILogger<CountryRepository> logger)
         {
-            _connectionString = settings.ConnectionString;
+            _connectionString = settings.ConnectionString;            _logger = logger;
+
         }
 
         /// <summary>
@@ -57,7 +60,7 @@ namespace RepositoryLayer.Repositories
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogInformation(ex, "Error Occurred");
                 return new List<CountryDTO>();
             }
         }
@@ -92,7 +95,7 @@ namespace RepositoryLayer.Repositories
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogInformation(ex, "Error Occurred");
                 return false;
             }
         }

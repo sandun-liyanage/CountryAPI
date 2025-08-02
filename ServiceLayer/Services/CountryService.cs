@@ -1,4 +1,5 @@
 ﻿using Core.DTO;
+using Microsoft.Extensions.Logging;
 using RepositoryLayer.Repositories;
 using System.Text.Json;
 
@@ -8,11 +9,13 @@ namespace ServiceLayer.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ICountryRepository _repo;
+        private readonly ILogger<CountryService> _logger;
 
-        public CountryService(IHttpClientFactory clientFactory, ICountryRepository repository)
+        public CountryService(IHttpClientFactory clientFactory, ICountryRepository repository, ILogger<CountryService> logger)
         {
             _httpClient = clientFactory.CreateClient();
             _repo       = repository;
+            _logger     = logger;
         }
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace ServiceLayer.Services
             //Validate IDs
             if (ids == null || !ids.Any() || ids.Any(id => string.IsNullOrEmpty(id) || id.Length != 3 || !id.All(char.IsLetter)))
             {
-                Console.WriteLine("Validation failed. Invalid country IDs.");
+                _logger.LogInformation("Validation failed. Invalid country IDs.");
                 return new List<CountryDTO>();
             }
 
@@ -61,7 +64,7 @@ namespace ServiceLayer.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _logger.LogInformation(ex, "Error Occurred");
                 return new List<CountryDTO>();
             }
         }
