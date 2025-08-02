@@ -1,21 +1,18 @@
 ﻿using Core.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
+using RepositoryLayer.Repositories;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ServiceLayer.Services
 {
     public class CountryService : ICountryService
     {
         private readonly HttpClient _httpClient;
+        private readonly ICountryRepository _repo;
 
-        public CountryService(IHttpClientFactory clientFactory)
+        public CountryService(IHttpClientFactory clientFactory, ICountryRepository repository)
         {
             _httpClient = clientFactory.CreateClient();
+            _repo       = repository;
         }
 
         /// <summary>
@@ -36,22 +33,30 @@ namespace ServiceLayer.Services
             }
 
             // Retrieve from DB if available.
-            // Pending...
+            var countries = await _repo.GetCountriesByCodesAsync(ids);
+            if (countries.Count == ids.Count)
+                return countries;
 
+            var foundIds = countries.Select(c => c.Id).ToHashSet();
+            var pendingCountries = string.Join(",", ids.Where(id => !foundIds.Contains(id)));
 
             try
             {
                 var stringIds = string.Join(",", ids);
-                var response = await _httpClient.GetAsync($"https://restcountries.com/v3.1/alpha?codes={stringIds}&fields=cca3,name,region,population");
+                var response = await _httpClient.GetAsync($"https://restcountries.com/v3.1/alpha?codes={pendingCountries}&fields=cca3,name,region,population");
                 response.EnsureSuccessStatusCode();
 
                 var json = await response.Content.ReadAsStringAsync();
-                var countries = JsonSerializer.Deserialize<List<CountryDTO>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var external = JsonSerializer.Deserialize<List<CountryDTO>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 // Store retrieved data in DB
-                // Pending...
+                if (external.Any())
+                {
+                    foreach (var c in external)
+                        await _repo.SaveAsync(c);
+                }
 
-
+                countries.AddRange(external);
                 return countries;
             }
             catch (Exception ex)
