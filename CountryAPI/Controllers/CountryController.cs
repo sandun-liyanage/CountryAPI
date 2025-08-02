@@ -40,8 +40,8 @@ namespace CountryAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByCode(string id)
         {
-            var country = await _service.GetCountriesByCodesAsync(new List<string> { id });
-            return country.Any() ? Ok(country) : NotFound("Error fetching data.");
+            var countries = await _service.GetCountriesByCodesAsync(new List<string> { id });
+            return countries.Any() ? Ok(countries.FirstOrDefault()) : NotFound("Error fetching data.");
         }
     }
 }
